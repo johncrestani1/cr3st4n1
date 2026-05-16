@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/johncrestani1/cr3st4n1/schema.json",
+  "title": ".cr3st4n1 Identity Credential",
+  "description": "Portable, Ed25519-signed human + hardware identity credential",
+  "type": "object",
+  "required": ["cr3st4n1", "identity", "device", "authorization", "_signature"],
+  "properties": {
+    "cr3st4n1": {
+      "type": "object",
+      "required": ["version", "created_at", "generator"],
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "generator": {
+          "type": "object",
+          "required": ["tool", "version"],
+          "properties": {
+            "tool": { "type": "string" },
+            "version": { "type": "string" }
+          }
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "required": ["email", "verification"],
+      "properties": {
+        "display_name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "verification": {
+          "type": "object",
+          "required": ["level"],
+          "properties": {
+            "level": { "type": "string", "enum": ["contract", "stripe_identity", "notarized"] },
+            "hellosign": {
+              "type": "object",
+              "required": ["signature_request_id", "signer_email"],
+              "properties": {
+                "signature_request_id": { "type": "string" },
+                "signed_at": { "type": ["string", "null"], "format": "date-time" },
+                "signer_email": { "type": "string", "format": "email" },
+                "contract_template": { "type": ["string", "null"] }
+              }
+            },
+            "circle": {
+              "type": "object",
+              "required": ["community_id", "email", "tag_id", "verified_at"],
+              "properties": {
+                "community_id": { "type": "string" },
+                "email": { "type": "string", "format": "email" },
+                "membership_tier": { "type": "string" },
+                "tag_id": { "type": "string" },
+                "tag_name": { "type": "string" },
+                "verified_at": { "type": "string", "format": "date-time" },
+                "subscription_status": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "device": {
+      "type": "object",
+      "required": ["binding_level", "hardware_fingerprint"],
+      "properties": {
+        "binding_level": { "type": "string", "enum": ["fingerprinted", "attested"] },
+        "hardware_fingerprint": { "type": "string", "pattern": "^sha256:" },
+        "registered_at": { "type": "string", "format": "date-time" },
+        "last_seen": { "type": "string", "format": "date-time" }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "required": ["roles", "tier"],
+      "properties": {
+        "roles": { "type": "array", "items": { "type": "string" } },
+        "tier": { "type": "string" },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "expires_at": { "type": ["string", "null"] }
+      }
+    },
+    "_signature": {
+      "type": "object",
+      "required": ["signer", "algorithm", "signed_at", "signature"],
+      "properties": {
+        "signer": { "type": "string" },
+        "algorithm": { "type": "string", "enum": ["Ed25519"] },
+        "signed_at": { "type": "string", "format": "date-time" },
+        "signature": { "type": "string", "pattern": "^base64:" }
+      }
+    }
+  }
+}
