@@ -32,6 +32,15 @@ pub struct Cr3st4n1File {
     pub identity: Identity,
     pub device: Device,
     pub authorization: Authorization,
+    /// Affiliate network position — brand authorizations, referral chain. Phase 2+.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub network: Option<NetworkSection>,
+    /// Crypto payment rails — wallet addresses, token gates, commission splits. Phase 2+.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub crypto: Option<CryptoSection>,
+    /// Affiliate Reputation Score — event-sourced trust history. Phase 3+.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reputation: Option<ReputationSection>,
     #[serde(rename = "_signature")]
     pub signature: FileSignature,
 }
@@ -107,6 +116,100 @@ pub struct FileSignature {
 }
 
 // ============================================================================
+// PHASE 2+ STUB SECTIONS (namespace reserved, nullable in Phase 1)
+// ============================================================================
+
+/// Affiliate network position — brands, referral chain, affiliate ID.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkSection {
+    /// Portable affiliate ID across networks.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub affiliate_id: Option<String>,
+    /// Per-brand authorizations with linked .m3m3tic files.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub brands: Vec<BrandAuthorization>,
+    /// Position in the referral tree.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referral_chain: Option<ReferralChain>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BrandAuthorization {
+    pub brand_id: String,
+    pub brand_name: String,
+    pub authorized_at: String,
+    /// SHA-256 hash of the linked .m3m3tic brand file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m3m3tic_hash: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReferralChain {
+    /// SHA-256 hash of the referrer's .cr3st4n1 file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referred_by: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referral_code: Option<String>,
+    #[serde(default)]
+    pub depth: u32,
+}
+
+/// Crypto payment rails — wallet addresses, token-gated tiers, commission splits.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CryptoSection {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub wallet_addresses: Vec<WalletAddress>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub token_gates: Vec<TokenGate>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub commission_split: Option<CommissionSplit>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WalletAddress {
+    pub chain: String,
+    pub address: String,
+    #[serde(default)]
+    pub verified: bool,
+    /// Signed message proving wallet ownership.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub proof: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenGate {
+    pub token: String,
+    pub chain: String,
+    pub minimum_balance: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verified_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommissionSplit {
+    pub affiliate: f64,
+    pub referrer: f64,
+    pub platform: f64,
+}
+
+/// Affiliate Reputation Score — event-sourced, issuer-signed trust history.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReputationSection {
+    /// 0-1000 scale. Computed by verifier, not self-reported.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ars_score: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub score_tier: Option<String>,
+    #[serde(default)]
+    pub event_count: u32,
+    /// SHA-256 of the event log head (hash chain).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub events_hash: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated: Option<String>,
+}
+
+// ============================================================================
 // SIGNING KEY (compiled into binary — same security model as CIRCLE_API_TOKEN)
 // ============================================================================
 
@@ -159,7 +262,7 @@ pub fn generate(params: &GenerateParams) -> Option<Cr3st4n1File> {
 
     let mut file = Cr3st4n1File {
         cr3st4n1: Cr3st4n1Meta {
-            version: "0.1.0".to_string(),
+            version: "0.2.0".to_string(),
             created_at: now.clone(),
             generator: Generator {
                 tool: "Bonfire Terminal".to_string(),
@@ -206,6 +309,10 @@ pub fn generate(params: &GenerateParams) -> Option<Cr3st4n1File> {
             ],
             expires_at: None,
         },
+        // Phase 2+ stubs — namespace reserved, null in Phase 1
+        network: None,
+        crypto: None,
+        reputation: None,
         // Placeholder — will be filled by sign()
         signature: FileSignature {
             signer: "Bonfire Terminal".to_string(),
@@ -264,11 +371,12 @@ pub fn verify(file: &Cr3st4n1File, current_hardware_fingerprint: &str) -> Result
 // LOAD / SAVE
 // ============================================================================
 
-/// Default path: ~/.bonfire/identity.cr3st4n1
+/// Default path: %USERPROFILE%/m3m3tic/identity.cr3st4n1
+/// The m3m3tic/ directory is the ecosystem home for identity + brand credentials.
 pub fn default_path() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join(".bonfire")
+        .join("m3m3tic")
         .join("identity.cr3st4n1")
 }
 
@@ -298,29 +406,23 @@ pub fn save(file: &Cr3st4n1File, path: &Path) -> Result<()> {
 // CONTENT HASH (deterministic, excludes signature field)
 // ============================================================================
 
-/// Compute SHA-256 hash of all file content EXCEPT the signature value itself.
-/// This is what gets Ed25519-signed.
+/// Compute SHA-256 hash of ALL file content EXCEPT `_signature.signature`.
+///
+/// Strategy: serialize the file to canonical YAML, strip the signature value
+/// line, hash the result. This ensures EVERY field is signed — adding new
+/// fields to the struct automatically includes them in the hash without
+/// updating this function.
 fn compute_content_hash(file: &Cr3st4n1File) -> Vec<u8> {
+    // Clone and zero out the signature value (but keep the rest of _signature)
+    let mut hashable = file.clone();
+    hashable.signature.signature = String::new();
+
+    // Serialize to YAML — serde_yaml produces deterministic output for the
+    // same struct (field order matches declaration order via #[derive(Serialize)])
+    let yaml = serde_yaml::to_string(&hashable).unwrap_or_default();
+
     let mut hasher = Sha256::new();
-    // Hash each section deterministically (field order matters)
-    hasher.update(format!("cr3st4n1.version={}", file.cr3st4n1.version));
-    hasher.update(format!("cr3st4n1.created_at={}", file.cr3st4n1.created_at));
-    hasher.update(format!("identity.email={}", file.identity.email));
-    hasher.update(format!("identity.verification.level={}", file.identity.verification.level));
-    if let Some(ref hs) = file.identity.verification.hellosign {
-        hasher.update(format!("hellosign.id={}", hs.signature_request_id));
-        hasher.update(format!("hellosign.email={}", hs.signer_email));
-    }
-    if let Some(ref c) = file.identity.verification.circle {
-        hasher.update(format!("circle.tag_id={}", c.tag_id));
-        hasher.update(format!("circle.verified_at={}", c.verified_at));
-    }
-    hasher.update(format!("device.fingerprint={}", file.device.hardware_fingerprint));
-    hasher.update(format!("device.binding_level={}", file.device.binding_level));
-    hasher.update(format!("authorization.tier={}", file.authorization.tier));
-    for role in &file.authorization.roles {
-        hasher.update(format!("authorization.role={}", role));
-    }
+    hasher.update(yaml.as_bytes());
     hasher.finalize().to_vec()
 }
 
@@ -382,6 +484,9 @@ mod tests {
                 features: vec![],
                 expires_at: None,
             },
+            network: None,
+            crypto: None,
+            reputation: None,
             signature: FileSignature {
                 signer: "Bonfire Terminal".to_string(),
                 algorithm: "Ed25519".to_string(),
@@ -441,6 +546,9 @@ mod tests {
                 features: vec!["ai_chat".to_string(), "terminal".to_string()],
                 expires_at: None,
             },
+            network: None,
+            crypto: None,
+            reputation: None,
             signature: FileSignature {
                 signer: "Bonfire Terminal".to_string(),
                 algorithm: "Ed25519".to_string(),

@@ -1,6 +1,6 @@
-# .cr3st4n1 File Specification v0.1.0
+# .cr3st4n1 File Specification v0.2.0
 
-**Status**: Phase 1 (Shipped in Bonfire Terminal v2.7.245+)
+**Status**: Phase 1 shipped, Phase 2 namespace reserved (Bonfire Terminal v2.7.245+)
 
 ## What is a .cr3st4n1 file?
 
@@ -19,7 +19,7 @@ YAML. The `_signature` section is excluded from the content hash before signing.
 
 ```yaml
 cr3st4n1:
-  version: "0.1.0"
+  version: "0.2.0"
   created_at: "2026-05-15T10:00:00Z"
   generator:
     tool: "Bonfire Terminal"
@@ -63,6 +63,11 @@ authorization:
     - "compliance_validation"
   expires_at: null  # null = no expiration
 
+# Phase 2+ stubs (nullable, namespace reserved)
+network: null    # affiliate_id, brands[], referral_chain
+crypto: null     # wallet_addresses[], token_gates[], commission_split
+reputation: null # ars_score, score_tier, event_count, events_hash
+
 _signature:
   signer: "Bonfire Terminal"
   algorithm: "Ed25519"
@@ -78,24 +83,19 @@ _signature:
 4. Compare `device.hardware_fingerprint` against current machine's fingerprint
 5. If both pass: credential is authentic and bound to this machine
 
-## Content Hash Algorithm
+## Content Hash Algorithm (v0.2.0)
 
-Fields are hashed in this exact order (string concatenation → SHA-256):
+The entire YAML document is hashed, not individual fields. This ensures
+every field (including future additions) is automatically signed.
 
-```
-cr3st4n1.version={version}
-cr3st4n1.created_at={created_at}
-identity.email={email}
-identity.verification.level={level}
-hellosign.id={signature_request_id}      # if present
-hellosign.email={signer_email}           # if present
-circle.tag_id={tag_id}                   # if present
-circle.verified_at={verified_at}         # if present
-device.fingerprint={hardware_fingerprint}
-device.binding_level={binding_level}
-authorization.tier={tier}
-authorization.role={role}                # one per role, in order
-```
+1. Clone the file structure
+2. Set `_signature.signature` to empty string
+3. Serialize to YAML (serde_yaml produces deterministic field order)
+4. SHA-256 hash the YAML bytes
+
+This replaces the v0.1.0 approach of hashing 12 cherry-picked fields,
+which left `authorization.features`, `identity.display_name`, and
+`generator` unsigned.
 
 ## Issuance Flow
 

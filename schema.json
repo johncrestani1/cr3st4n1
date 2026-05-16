@@ -80,6 +80,84 @@
         "expires_at": { "type": ["string", "null"] }
       }
     },
+    "network": {
+      "type": ["object", "null"],
+      "description": "Affiliate network position — brand authorizations, referral chain. Phase 2+.",
+      "properties": {
+        "affiliate_id": { "type": ["string", "null"] },
+        "brands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["brand_id", "brand_name", "authorized_at"],
+            "properties": {
+              "brand_id": { "type": "string" },
+              "brand_name": { "type": "string" },
+              "authorized_at": { "type": "string", "format": "date-time" },
+              "m3m3tic_hash": { "type": ["string", "null"], "pattern": "^sha256:" }
+            }
+          }
+        },
+        "referral_chain": {
+          "type": ["object", "null"],
+          "properties": {
+            "referred_by": { "type": ["string", "null"], "description": "SHA-256 hash of referrer's .cr3st4n1" },
+            "referral_code": { "type": ["string", "null"] },
+            "depth": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "crypto": {
+      "type": ["object", "null"],
+      "description": "Crypto payment rails — wallet addresses, token gates, commission splits. Phase 2+.",
+      "properties": {
+        "wallet_addresses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["chain", "address"],
+            "properties": {
+              "chain": { "type": "string", "enum": ["ethereum", "solana", "base", "polygon"] },
+              "address": { "type": "string" },
+              "verified": { "type": "boolean", "default": false },
+              "proof": { "type": ["string", "null"], "description": "Signed message proving wallet ownership" }
+            }
+          }
+        },
+        "token_gates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": { "type": "string" },
+              "chain": { "type": "string" },
+              "minimum_balance": { "type": "number" },
+              "verified_at": { "type": ["string", "null"], "format": "date-time" }
+            }
+          }
+        },
+        "commission_split": {
+          "type": ["object", "null"],
+          "properties": {
+            "affiliate": { "type": "number", "minimum": 0, "maximum": 1 },
+            "referrer": { "type": "number", "minimum": 0, "maximum": 1 },
+            "platform": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      }
+    },
+    "reputation": {
+      "type": ["object", "null"],
+      "description": "Affiliate Reputation Score — event-sourced trust history. Phase 3+.",
+      "properties": {
+        "ars_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1000 },
+        "score_tier": { "type": ["string", "null"], "enum": [null, "new", "developing", "established", "trusted", "elite"] },
+        "event_count": { "type": "integer", "default": 0 },
+        "events_hash": { "type": ["string", "null"], "description": "SHA-256 of the event log head" },
+        "last_updated": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
     "_signature": {
       "type": "object",
       "required": ["signer", "algorithm", "signed_at", "signature"],
