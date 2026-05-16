@@ -1,4 +1,4 @@
-# .cr3st4n1 File Specification v0.2.0
+# .cr3st4n1 File Specification v0.3.0
 
 **Status**: Phase 1 shipped, Phase 2 namespace reserved (Bonfire Terminal v2.7.245+)
 
@@ -83,7 +83,7 @@ _signature:
 4. Compare `device.hardware_fingerprint` against current machine's fingerprint
 5. If both pass: credential is authentic and bound to this machine
 
-## Content Hash Algorithm (v0.2.0)
+## Content Hash Algorithm (v0.3.0)
 
 The entire YAML document is hashed, not individual fields. This ensures
 every field (including future additions) is automatically signed.
