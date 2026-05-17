@@ -1,60 +1,132 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/johncrestani1/cr3st4n1/schema.json",
-  "title": ".cr3st4n1 Identity Credential",
-  "description": "Portable, Ed25519-signed human + hardware identity credential",
+  "$id": "https://m3m3tic.dev/schemas/v0.4.0/cr3st4n1.schema.json",
+  "title": "cr3st4n1 File Format v0.4.0",
+  "description": "Schema for the .cr3st4n1 identity credential file format, version 0.4.0.",
   "type": "object",
-  "required": ["cr3st4n1", "identity", "device", "authorization", "_signature"],
+  "required": ["cr3st4n1", "identity", "device", "trust", "_signature"],
+  "additionalProperties": false,
   "properties": {
     "cr3st4n1": {
       "type": "object",
-      "required": ["version", "created_at", "generator"],
+      "description": "File format metadata block.",
+      "required": ["version", "created_at"],
+      "additionalProperties": false,
       "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
-        "created_at": { "type": "string", "format": "date-time" },
+        "version": {
+          "type": "string",
+          "description": "Semantic version of the cr3st4n1 spec this file conforms to.",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "created_at": {
+          "type": "string",
+          "description": "ISO 8601 timestamp when this file was created.",
+          "format": "date-time"
+        },
         "generator": {
           "type": "object",
-          "required": ["tool", "version"],
+          "description": "Tool that generated this file.",
           "properties": {
             "tool": { "type": "string" },
             "version": { "type": "string" }
-          }
+          },
+          "additionalProperties": false
         }
       }
     },
     "identity": {
       "type": "object",
-      "required": ["email", "verification"],
+      "description": "Identity claim for the credential holder.",
+      "required": ["type", "display_name", "email", "verification"],
+      "additionalProperties": false,
       "properties": {
-        "display_name": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
+        "type": {
+          "type": "string",
+          "description": "The type of identity this credential represents.",
+          "enum": ["human", "ai_agent", "organization"]
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name for the identity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Contact email for the identity holder.",
+          "format": "email"
+        },
+        "organization": {
+          "type": "string",
+          "description": "Optional organization affiliation."
+        },
         "verification": {
           "type": "object",
-          "required": ["level"],
+          "description": "Verification claims and provider attestations.",
+          "required": ["level", "providers"],
+          "additionalProperties": false,
           "properties": {
-            "level": { "type": "string", "enum": ["contract", "stripe_identity", "notarized"] },
-            "hellosign": {
-              "type": "object",
-              "required": ["signature_request_id", "signer_email"],
-              "properties": {
-                "signature_request_id": { "type": "string" },
-                "signed_at": { "type": ["string", "null"], "format": "date-time" },
-                "signer_email": { "type": "string", "format": "email" },
-                "contract_template": { "type": ["string", "null"] }
-              }
+            "level": {
+              "type": "string",
+              "description": "Highest verification level achieved.",
+              "enum": ["self_declared", "email_verified", "contract", "identity_document", "notarized"]
             },
-            "circle": {
-              "type": "object",
-              "required": ["community_id", "email", "tag_id", "verified_at"],
-              "properties": {
-                "community_id": { "type": "string" },
-                "email": { "type": "string", "format": "email" },
-                "membership_tier": { "type": "string" },
-                "tag_id": { "type": "string" },
-                "tag_name": { "type": "string" },
-                "verified_at": { "type": "string", "format": "date-time" },
-                "subscription_status": { "type": "string" }
+            "providers": {
+              "type": "array",
+              "description": "List of verification providers that have attested this identity.",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["type", "provider"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["e_signature", "membership", "gov_id", "notary", "platform_registration", "jurisdiction_license"]
+                  },
+                  "provider": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
               }
+            }
+          }
+        },
+        "ai_agent_metadata": {
+          "type": "object",
+          "description": "Metadata required when identity.type is 'ai_agent'. Contains operator linkage and autonomy parameters.",
+          "required": ["operator_ref"],
+          "additionalProperties": false,
+          "properties": {
+            "operator_ref": {
+              "type": "string",
+              "description": "SHA-256 hash of the human operator's .cr3st4n1 file."
+            },
+            "model": {
+              "type": "string",
+              "description": "AI model identifier (e.g. 'claude-opus-4-6')."
+            },
+            "autonomy_level": {
+              "type": "string",
+              "description": "Level of autonomy granted to the AI agent.",
+              "enum": ["supervised", "semi_autonomous", "autonomous"]
+            },
+            "deployer": {
+              "type": "string",
+              "description": "Entity under whose authority the AI agent operates."
+            }
+          }
+        },
+        "licenses": {
+          "type": "array",
+          "description": "Optional professional or jurisdictional licenses held by the identity.",
+          "items": {
+            "type": "object",
+            "required": ["jurisdiction", "authority", "permit_id"],
+            "additionalProperties": false,
+            "properties": {
+              "jurisdiction": { "type": "string" },
+              "authority": { "type": "string" },
+              "permit_id": { "type": "string" },
+              "type": { "type": "string" }
             }
           }
         }
@@ -62,111 +134,148 @@
     },
     "device": {
       "type": "object",
-      "required": ["binding_level", "hardware_fingerprint"],
+      "description": "Device binding information for the credential.",
+      "required": ["binding_level", "registered_at"],
+      "additionalProperties": false,
       "properties": {
-        "binding_level": { "type": "string", "enum": ["fingerprinted", "attested"] },
-        "hardware_fingerprint": { "type": "string", "pattern": "^sha256:" },
-        "registered_at": { "type": "string", "format": "date-time" },
-        "last_seen": { "type": "string", "format": "date-time" }
+        "binding_level": {
+          "type": "string",
+          "description": "How strongly the credential is bound to a specific device.",
+          "enum": ["fingerprinted", "attested", "none", "cloud"]
+        },
+        "hardware_fingerprint": {
+          "type": "string",
+          "description": "Device hardware fingerprint. Required when binding_level is 'fingerprinted' or 'attested'."
+        },
+        "registered_at": {
+          "type": "string",
+          "description": "When this device binding was first registered.",
+          "format": "date-time"
+        },
+        "last_seen": {
+          "type": "string",
+          "description": "Last time this device was seen active.",
+          "format": "date-time"
+        }
       }
     },
-    "authorization": {
+    "trust": {
       "type": "object",
-      "required": ["roles", "tier"],
+      "description": "Trust level and credential chain.",
+      "required": ["level", "credential_chain"],
+      "additionalProperties": false,
       "properties": {
-        "roles": { "type": "array", "items": { "type": "string" } },
-        "tier": { "type": "string" },
-        "features": { "type": "array", "items": { "type": "string" } },
-        "expires_at": { "type": ["string", "null"] }
-      }
-    },
-    "network": {
-      "type": ["object", "null"],
-      "description": "Affiliate network position — brand authorizations, referral chain. Phase 2+.",
-      "properties": {
-        "affiliate_id": { "type": ["string", "null"] },
-        "brands": {
+        "level": {
+          "type": "integer",
+          "description": "Numeric trust level from 0 (untrusted) to 5 (fully verified).",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "credential_chain": {
           "type": "array",
+          "description": "Chain of credentials establishing trust provenance.",
+          "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["brand_id", "brand_name", "authorized_at"],
+            "required": ["issuer", "issued_at", "method"],
+            "additionalProperties": true,
             "properties": {
-              "brand_id": { "type": "string" },
-              "brand_name": { "type": "string" },
-              "authorized_at": { "type": "string", "format": "date-time" },
-              "m3m3tic_hash": { "type": ["string", "null"], "pattern": "^sha256:" }
+              "issuer": {
+                "type": "string",
+                "description": "Entity that issued this credential."
+              },
+              "issued_at": {
+                "type": "string",
+                "description": "When this credential was issued.",
+                "format": "date-time"
+              },
+              "method": {
+                "type": "string",
+                "description": "Method used to verify and issue the credential."
+              }
             }
-          }
-        },
-        "referral_chain": {
-          "type": ["object", "null"],
-          "properties": {
-            "referred_by": { "type": ["string", "null"], "description": "SHA-256 hash of referrer's .cr3st4n1" },
-            "referral_code": { "type": ["string", "null"] },
-            "depth": { "type": "integer", "minimum": 0 }
           }
         }
-      }
-    },
-    "crypto": {
-      "type": ["object", "null"],
-      "description": "Crypto payment rails — wallet addresses, token gates, commission splits. Phase 2+.",
-      "properties": {
-        "wallet_addresses": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["chain", "address"],
-            "properties": {
-              "chain": { "type": "string", "enum": ["ethereum", "solana", "base", "polygon"] },
-              "address": { "type": "string" },
-              "verified": { "type": "boolean", "default": false },
-              "proof": { "type": ["string", "null"], "description": "Signed message proving wallet ownership" }
-            }
-          }
-        },
-        "token_gates": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "token": { "type": "string" },
-              "chain": { "type": "string" },
-              "minimum_balance": { "type": "number" },
-              "verified_at": { "type": ["string", "null"], "format": "date-time" }
-            }
-          }
-        },
-        "commission_split": {
-          "type": ["object", "null"],
-          "properties": {
-            "affiliate": { "type": "number", "minimum": 0, "maximum": 1 },
-            "referrer": { "type": "number", "minimum": 0, "maximum": 1 },
-            "platform": { "type": "number", "minimum": 0, "maximum": 1 }
-          }
-        }
-      }
-    },
-    "reputation": {
-      "type": ["object", "null"],
-      "description": "Affiliate Reputation Score — event-sourced trust history. Phase 3+.",
-      "properties": {
-        "ars_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1000 },
-        "score_tier": { "type": ["string", "null"], "enum": [null, "new", "developing", "established", "trusted", "elite"] },
-        "event_count": { "type": "integer", "default": 0 },
-        "events_hash": { "type": ["string", "null"], "description": "SHA-256 of the event log head" },
-        "last_updated": { "type": ["string", "null"], "format": "date-time" }
       }
     },
     "_signature": {
       "type": "object",
+      "description": "Cryptographic signature over the entire file contents (excluding this block).",
       "required": ["signer", "algorithm", "signed_at", "signature"],
+      "additionalProperties": false,
       "properties": {
-        "signer": { "type": "string" },
-        "algorithm": { "type": "string", "enum": ["Ed25519"] },
-        "signed_at": { "type": "string", "format": "date-time" },
-        "signature": { "type": "string", "pattern": "^base64:" }
+        "signer": {
+          "type": "string",
+          "description": "Identifier of the signing party."
+        },
+        "algorithm": {
+          "type": "string",
+          "description": "Signing algorithm used. Must be Ed25519.",
+          "const": "Ed25519"
+        },
+        "signed_at": {
+          "type": "string",
+          "description": "When the signature was produced.",
+          "format": "date-time"
+        },
+        "signature": {
+          "type": "string",
+          "description": "Base64-encoded Ed25519 signature."
+        }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "identity": {
+            "properties": { "type": { "const": "ai_agent" } },
+            "required": ["type"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "identity": {
+            "required": ["type", "display_name", "email", "verification", "ai_agent_metadata"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "device": {
+            "properties": { "binding_level": { "const": "fingerprinted" } },
+            "required": ["binding_level"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "device": {
+            "required": ["binding_level", "registered_at", "hardware_fingerprint"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "device": {
+            "properties": { "binding_level": { "const": "attested" } },
+            "required": ["binding_level"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "device": {
+            "required": ["binding_level", "registered_at", "hardware_fingerprint"]
+          }
+        }
+      }
+    }
+  ]
 }
