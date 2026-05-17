@@ -1,0 +1,57 @@
+---
+# cr3st4n1 credential — v0.4.0
+# Human distributor with dual-gate verification
+
+cr3st4n1_version: "0.4.0"
+credential_id: "cred-hd-20260517-a1b2c3d4e5f6"
+issued_at: "2026-05-17T14:30:00Z"
+expires_at: "2027-05-17T14:30:00Z"
+
+type: human
+
+identity:
+  display_name: "Maria Gonzalez"
+  email: "maria@example.com"
+  organization: "Maria's Herbalife Nutrition"
+
+verification:
+  level: "dual_gate"
+  providers:
+    - type: contract
+      provider: hellosign
+      template: bonfire_distributor
+      status: signed
+      signed_at: "2026-05-10T09:15:00Z"
+      document_id: "hs_doc_9f8e7d6c5b4a3210"
+    - type: membership
+      provider: circle
+      community_id: 363417
+      tier: mentorship
+      tag: 246372
+      verified_at: "2026-05-12T11:00:00Z"
+
+trust:
+  level: 3
+  label: "dual-gate"
+  factors:
+    - "hellosign_contract_signed"
+    - "circle_membership_verified"
+    - "hardware_fingerprinted"
+
+device:
+  binding_level: "hardware"
+  fingerprint_hash: "sha256:a4f1c8e09b3d72f56e1a0c4d8b9f2e7a3c6d5b8a1f0e9d8c7b6a5f4e3d2c1b0a"
+  fingerprinted_at: "2026-05-12T11:05:00Z"
+  platform: "windows"
+  arch: "x86_64"
+
+signature:
+  algorithm: "ed25519"
+  public_key: "base64:MCowBQYDK2VwAyEA7Ks1rQgQ3kzG5hJ2vF8xL9mNcP0wDtYiAoBjS4U6nRk="
+  value: "base64:dG9rZW5fc2lnbmF0dXJlX3BsYWNlaG9sZGVyX2Zvcl9odW1hbl9kaXN0cmlidXRvcl9jcmVkZW50aWFsX3YwLjQuMA=="
+  signed_fields:
+    - credential_id
+    - identity
+    - verification
+    - trust
+    - device
