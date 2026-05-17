@@ -1,0 +1,43 @@
+---
+# cr3st4n1 credential — v0.4.0
+# Minimal valid credential
+
+cr3st4n1_version: "0.4.0"
+credential_id: "cred-min-20260517-000000000000"
+issued_at: "2026-05-17T00:00:00Z"
+expires_at: "2027-05-17T00:00:00Z"
+
+type: human
+
+identity:
+  display_name: "Test User"
+  email: "test@example.com"
+
+verification:
+  level: "email_verified"
+  providers:
+    - type: membership
+      provider: circle
+      status: active
+
+trust:
+  level: 1
+  label: "email-only"
+  factors:
+    - "email_verified"
+
+device:
+  binding_level: "fingerprinted"
+  fingerprint_hash: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  platform: "unknown"
+
+signature:
+  algorithm: "ed25519"
+  public_key: "base64:MCowBQYDK2VwAyEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  value: "base64:cGxhY2Vob2xkZXJfc2lnbmF0dXJlX21pbmltYWxfY3JlZGVudGlhbA=="
+  signed_fields:
+    - credential_id
+    - identity
+    - verification
+    - trust
+    - device
