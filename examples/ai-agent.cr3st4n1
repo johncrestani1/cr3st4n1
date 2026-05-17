@@ -1,0 +1,68 @@
+---
+# cr3st4n1 credential — v0.4.0
+# AI agent credential with platform registration gate
+
+cr3st4n1_version: "0.4.0"
+credential_id: "cred-ai-20260517-f7e8d9c0b1a2"
+issued_at: "2026-05-17T10:00:00Z"
+expires_at: "2027-05-17T10:00:00Z"
+
+type: ai_agent
+
+identity:
+  display_name: "Bonfire Content Bot"
+  email: "bot@bonfire.dev"
+  organization: "Bonfire Terminal Inc."
+
+ai_agent_metadata:
+  operator_ref: "sha256:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3"
+  model: "claude-opus-4-6"
+  autonomy_level: "supervised"
+  deployer: "Bonfire Terminal Inc."
+  capabilities:
+    - "content_generation"
+    - "summarization"
+    - "scheduling"
+
+verification:
+  level: "single_gate"
+  providers:
+    - type: platform_registration
+      provider: bonfire
+      registered_at: "2026-05-15T08:00:00Z"
+      registration_id: "bonfire_reg_ai_00482"
+      status: active
+
+trust:
+  level: 2
+  label: "single-gate"
+  factors:
+    - "platform_registration_verified"
+
+device:
+  binding_level: "cloud"
+  fingerprint_hash: null
+  platform: "cloud"
+  arch: "n/a"
+  note: "No physical hardware binding — cloud-hosted agent"
+
+jurisdiction:
+  - region: "UAE"
+    license_type: "ai_service_permit"
+    license_id: "UAE-AI-2026-04821"
+    issued_by: "Telecommunications and Digital Government Regulatory Authority"
+    valid_from: "2026-04-01T00:00:00Z"
+    valid_until: "2027-03-31T23:59:59Z"
+
+signature:
+  algorithm: "ed25519"
+  public_key: "base64:MCowBQYDK2VwAyEAPlR2h0K8mVxNq9F4wT5sGjE7cBnY1uDvAoXkL3iZ8Wc="
+  value: "base64:YWlfYWdlbnRfY3JlZGVudGlhbF9zaWduYXR1cmVfcGxhY2Vob2xkZXJfdjAuNC4wX2JvbmZpcmVfY29udGVudF9ib3Q="
+  signed_fields:
+    - credential_id
+    - identity
+    - ai_agent_metadata
+    - verification
+    - trust
+    - device
+    - jurisdiction
