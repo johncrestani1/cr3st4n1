@@ -38,9 +38,9 @@ cr3st4n1:
     version: "2.7.246"
 
 identity:
-  display_name: "Art Villalobos"
-  email: "art@salvomedia.com"
-  organization: "Salvo Media LLC"
+  display_name: "Betsy Davis"
+  email: "wiley@acme.co"
+  organization: "Acme Corp"
   verification:
     level: "contract"                  # self_declared | email_verified | contract | identity_document | notarized
     providers:
@@ -48,7 +48,7 @@ identity:
         provider: "hellosign"
         signature_request_id: "abc123"
         signed_at: "2026-05-17T09:00:00Z"
-        signer_email: "art@salvomedia.com"
+        signer_email: "wiley@acme.co"
         contract_template: "bonfire_agency"
       - type: "membership"
         provider: "circle"
