@@ -46,3 +46,21 @@ jobs:
       - run: cargo test --all
       - run: cargo clippy --all -- -D warnings
       - run: cargo fmt --all -- --check
+
+  cross-lang:
+    runs-on: ubuntu-latest
+    needs: rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pynacl pyyaml
+      - name: Cross-language sign and verify
+        run: |
+          cargo run -- key generate --output /tmp/key.json
+          cp examples/minimal.cr3st4n1 /tmp/signed.cr3st4n1
+          cargo run -- credential sign --input /tmp/signed.cr3st4n1 --key /tmp/key.json
+          PUBKEY=$(python -c "import json; print(json.load(open('/tmp/key.json'))['public'])")
+          python examples/verify.py /tmp/signed.cr3st4n1 "$PUBKEY"

@@ -33,4 +33,9 @@ thiserror = "1"
 clap = { version = "4", features = ["derive"], optional = true }
 
 [dev-dependencies]
+criterion = "0.5"
 tempfile = "3"
+
+[[bench]]
+name = "signing"
+harness = false

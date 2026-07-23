@@ -7,6 +7,21 @@ The identity half of the `.m3m3tic` ecosystem. A `.cr3st4n1` file
 answers one question: is this actor who they claim to be, and how
 much should you trust that claim?
 
+## Install
+
+```bash
+cargo install cr3st4n1
+```
+
+## Quick Start
+
+```bash
+cr3st4n1 key generate --output key.json
+cr3st4n1 credential sign --input identity.cr3st4n1 --key key.json
+cr3st4n1 credential verify --input identity.cr3st4n1 --key key.json
+cr3st4n1 hash --input identity.cr3st4n1
+```
+
 ## Format
 
 YAML files with Ed25519 signatures. Trust levels 0-5. Offline-verifiable.
@@ -66,6 +81,26 @@ See `examples/minimal.cr3st4n1` (trust level 1) and `examples/full.cr3st4n1` (tr
 | API keys | No identity information, no trust levels, no offline verification. |
 | JWTs | No schema validation, no selective disclosure path, no content-addressed DID. |
 | OAuth tokens | Require online verification. cr3st4n1 verifies offline. |
+
+## Performance
+
+| Operation | Time (median) |
+|-----------|---------------|
+| validate  | 4.5 us        |
+| content_hash | 19 us      |
+| verify    | 46 us         |
+| sign      | 48 us         |
+
+Measured on Windows 10, Rust 1.93. Run `cargo bench` for numbers on your hardware.
+
+## Verify in Python
+
+Credentials can be verified in Python with two dependencies (`pynacl`, `pyyaml`):
+
+```bash
+pip install pynacl pyyaml
+python examples/verify.py signed.cr3st4n1 <pubkey_base64>
+```
 
 ## Specification
 
