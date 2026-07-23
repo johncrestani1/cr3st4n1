@@ -1,7 +1,7 @@
 # did:m3m3tic Method Specification
 
 ## Status
-Draft — v0.1.0
+Draft — v1.0.0
 
 ## Authors
 Bonfire Terminal Inc.

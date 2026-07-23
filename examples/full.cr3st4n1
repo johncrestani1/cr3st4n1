@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────────────────
 # cr3st4n1 credential — v0.4.0
-# Minimal valid credential (trust level 1, email verified)
+# Full credential exercising all conditional schema paths
 # ─────────────────────────────────────────────────────────
 
 # ─────────────────────────────────────────────────────────
@@ -8,37 +8,61 @@
 # ─────────────────────────────────────────────────────────
 cr3st4n1:
   version: "0.4.0"
-  created_at: "2026-07-23T00:00:00Z"
+  created_at: "2026-07-23T12:00:00Z"
+  generator:
+    tool: "cr3st4n1-cli"
+    version: "0.1.0"
 
 # ─────────────────────────────────────────────────────────
-# IDENTITY
+# IDENTITY (ai_agent triggers ai_agent_metadata requirement)
 # ─────────────────────────────────────────────────────────
 identity:
-  type: "human"
-  display_name: "Test User"
-  email: "test@example.com"
+  type: "ai_agent"
+  display_name: "Bonfire Content Bot"
+  email: "bot@bonfire.dev"
+  organization: "Bonfire Terminal Inc."
   verification:
-    level: "email_verified"
+    level: "identity_document"
     providers:
       - type: "platform_registration"
         provider: "bonfire"
+        registered_at: "2026-06-01T08:00:00Z"
+      - type: "e_signature"
+        provider: "hellosign"
+        document_id: "hs_doc_a1b2c3d4e5f6"
+      - type: "gov_id"
+        provider: "clear"
+        verified_at: "2026-06-15T14:30:00Z"
+  ai_agent_metadata:
+    operator_ref: "sha256:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3"
+    model: "claude-opus-4-6"
+    autonomy_level: "supervised"
+    deployer: "Bonfire Terminal Inc."
 
 # ─────────────────────────────────────────────────────────
-# DEVICE BINDING
+# DEVICE BINDING (attested triggers hardware_fingerprint)
 # ─────────────────────────────────────────────────────────
 device:
-  binding_level: "none"
-  registered_at: "2026-07-23T00:00:00Z"
+  binding_level: "attested"
+  hardware_fingerprint: "sha256:a4f1c8e09b3d72f56e1a0c4d8b9f2e7a3c6d5b8a1f0e9d8c7b6a5f4e3d2c1b0a"
+  registered_at: "2026-07-01T10:00:00Z"
+  last_seen: "2026-07-23T11:59:00Z"
 
 # ─────────────────────────────────────────────────────────
-# TRUST
+# TRUST (level 4 with 3-entry credential chain)
 # ─────────────────────────────────────────────────────────
 trust:
-  level: 1
+  level: 4
   credential_chain:
     - issuer: "bonfire-platform"
-      issued_at: "2026-07-23T00:00:00Z"
-      method: "email_verification"
+      issued_at: "2026-06-01T08:00:00Z"
+      method: "platform_registration"
+    - issuer: "hellosign"
+      issued_at: "2026-06-10T12:00:00Z"
+      method: "e_signature_verification"
+    - issuer: "clear-id"
+      issued_at: "2026-06-15T14:30:00Z"
+      method: "government_id_scan"
 
 # ─────────────────────────────────────────────────────────
 # SIGNATURE
@@ -46,5 +70,5 @@ trust:
 _signature:
   signer: "bonfire-platform"
   algorithm: "Ed25519"
-  signed_at: "2026-07-23T00:00:00Z"
-  signature: "cGxhY2Vob2xkZXJfc2lnbmF0dXJlX21pbmltYWxfY3JlZGVudGlhbA=="
+  signed_at: "2026-07-23T12:00:00Z"
+  signature: "ZnVsbF9jcmVkZW50aWFsX3NpZ25hdHVyZV9wbGFjZWhvbGRlcl92MC40LjBfYm9uZmlyZV9jb250ZW50X2JvdA=="

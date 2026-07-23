@@ -1,7 +1,7 @@
-# .cr3st4n1 File Specification v0.4.0
+# .cr3st4n1 File Specification v1.0.0-rc.1
 
-**Status**: Draft
-**Date**: 2026-05-17
+**Status**: Release Candidate
+**Date**: 2026-07-23
 **Authors**: Bonfire Terminal
 
 ---
@@ -31,7 +31,7 @@ The `.m3m3tic` file references `.cr3st4n1` credentials via hash (`actor_ref: "sh
 
 ```yaml
 cr3st4n1:
-  version: "0.4.0"
+  version: "1.0.0-rc.1"
   created_at: "2026-05-17T00:00:00Z"
   generator:
     tool: "Bonfire Terminal"
@@ -59,7 +59,7 @@ identity:
         subscription_status: "active"
 
 device:
-  binding_level: "fingerprinted"       # fingerprinted | attested | none
+  binding_level: "fingerprinted"       # fingerprinted | attested | none | cloud
   hardware_fingerprint: "sha256:a3f2b8c1d4e5..."
   registered_at: "2026-05-17T10:00:00Z"
   last_seen: "2026-05-17T10:00:00Z"
@@ -95,11 +95,22 @@ _signature:
 
 | Field | Type | Required | Description |
 |---|---|---|---|
+| `type` | enum | YES | `human` / `ai_agent` / `organization` |
 | `display_name` | string | YES | Human-readable name |
 | `email` | string | YES | Verified email address |
 | `organization` | string | no | Company/org name |
 | `verification.level` | enum | YES | Verification strength |
 | `verification.providers[]` | array | YES | Verification sources (min 1) |
+| `ai_agent_metadata` | object | YES (if type=ai_agent) | Operator linkage and autonomy params |
+| `ai_agent_metadata.operator_ref` | string | YES (within block) | SHA-256 of operator's .cr3st4n1 |
+| `ai_agent_metadata.model` | string | no | AI model identifier |
+| `ai_agent_metadata.autonomy_level` | enum | no | `supervised` / `semi_autonomous` / `autonomous` |
+| `ai_agent_metadata.deployer` | string | no | Entity operating the AI agent |
+| `licenses[]` | array of objects | no | Professional/jurisdictional licenses |
+| `licenses[].jurisdiction` | string | YES (within item) | Jurisdiction of the license |
+| `licenses[].authority` | string | YES (within item) | Issuing authority |
+| `licenses[].permit_id` | string | YES (within item) | License/permit identifier |
+| `licenses[].type` | string | no | License type descriptor |
 
 #### Verification Levels
 
@@ -119,12 +130,14 @@ _signature:
 | `membership` | Circle.so, Stripe | Person holds active paid membership |
 | `gov_id` | Stripe Identity, Jumio | Government-issued ID matches person |
 | `notary` | Notarize.com | Legally notarized identity declaration |
+| `platform_registration` | Bonfire Terminal | Platform account registration verified |
+| `jurisdiction_license` | State bar, medical board | Professional/jurisdictional license verified |
 
 ### 4.3 `device` (REQUIRED)
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `binding_level` | enum | YES | `fingerprinted` / `attested` / `none` |
+| `binding_level` | enum | YES | `fingerprinted` / `attested` / `none` / `cloud` |
 | `hardware_fingerprint` | string | YES (if fingerprinted) | SHA-256 composite (disk serial + CPU ID + MAC) |
 | `registered_at` | datetime | YES | When device was first bound |
 | `last_seen` | datetime | no | Last successful verification |
@@ -276,11 +289,11 @@ M3M3TICProtocol.sol (Base L2)
 
 ---
 
-## 12. Migration from v0.3.0
+## 12. Migration from v0.3.0 / v0.4.0
 
-v0.3.0 had `authorization.roles`, `network`, `crypto`, `reputation` sections. In v0.4.0:
+v0.3.0 had `authorization.roles`, `network`, `crypto`, `reputation` sections. These were removed in v0.4.0 and remain absent in v1.0.0-rc.1:
 
-| v0.3.0 | v0.4.0 | Reason |
+| v0.3.0 | v1.0.0-rc.1 | Reason |
 |---|---|---|
 | `authorization.roles` | Removed | Roles live in .m3m3tic relationships[].type |
 | `authorization.features` | Removed | Features are Bonfire Terminal config, not credential |

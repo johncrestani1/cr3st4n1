@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://m3m3tic.dev/schemas/v0.4.0/cr3st4n1.schema.json",
-  "title": "cr3st4n1 File Format v0.4.0",
-  "description": "Schema for the .cr3st4n1 identity credential file format, version 0.4.0.",
+  "$id": "https://m3m3tic.dev/schemas/v1.0.0/cr3st4n1.schema.json",
+  "title": "cr3st4n1 File Format v1.0.0-rc.1",
+  "description": "Schema for the .cr3st4n1 identity credential file format, version 1.0.0-rc.1.",
   "type": "object",
   "required": ["cr3st4n1", "identity", "device", "trust", "_signature"],
   "additionalProperties": false,
