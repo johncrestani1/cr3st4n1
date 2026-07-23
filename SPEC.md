@@ -31,13 +31,14 @@ The `.m3m3tic` file references `.cr3st4n1` credentials via hash (`actor_ref: "sh
 
 ```yaml
 cr3st4n1:
-  version: "1.0.0-rc.1"
+  version: "1.0.0"
   created_at: "2026-05-17T00:00:00Z"
   generator:
     tool: "Bonfire Terminal"
     version: "2.7.246"
 
 identity:
+  type: "human"
   display_name: "Betsy Davis"
   email: "wiley@acme.co"
   organization: "Acme Corp"
@@ -75,7 +76,7 @@ _signature:
   signer: "Bonfire Terminal"
   algorithm: "Ed25519"
   signed_at: "2026-05-17T10:00:00Z"
-  signature: "base64:..."
+  signature: ""
 ```
 
 ---

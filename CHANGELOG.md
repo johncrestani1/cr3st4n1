@@ -34,7 +34,7 @@ Renamed from v0.4.0. This is the release candidate for the first stable version.
 
 - Deleted v0.3 reference implementation (replaced by cr3st4n1-core crate)
 - Rewrote all examples to validate against schema.json
-- Added CI schema validation (ajv) on every commit
+- Added CI schema validation (Python jsonschema) on every commit
 - Version bump to 1.0.0-rc.1
 
 ### Migration from v0.3.0

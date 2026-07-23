@@ -30,29 +30,31 @@ JSON Schema (Draft 2020-12) for validation.
 ```yaml
 cr3st4n1:
   version: "1.0.0"
+  created_at: "2026-07-23T00:00:00Z"
 
 identity:
-  display_name: "Alice"
   type: "human"
+  display_name: "Alice"
+  email: "alice@example.com"
   verification:
     level: "email_verified"
     providers:
       - type: "platform_registration"
         provider: "bonfire"
-        verified_at: "2026-07-23T00:00:00Z"
 
 device:
   binding_level: "none"
+  registered_at: "2026-07-23T00:00:00Z"
 
 trust:
   level: 1
   credential_chain:
-    - type: "email_verified"
-      provider: "bonfire"
-      verified_at: "2026-07-23T00:00:00Z"
+    - issuer: "bonfire-platform"
+      issued_at: "2026-07-23T00:00:00Z"
+      method: "email_verification"
 
 _signature:
-  signer: "did:m3m3tic:bonfire-issuer"
+  signer: "bonfire-platform"
   algorithm: "Ed25519"
   signed_at: "2026-07-23T00:00:00Z"
   signature: ""
@@ -95,10 +97,10 @@ Measured on Windows 10, Rust 1.93. Run `cargo bench` for numbers on your hardwar
 
 ## Verify in Python
 
-Credentials can be verified in Python with two dependencies (`pynacl`, `pyyaml`):
+Credentials can be verified in Python with one dependency (`pynacl`):
 
 ```bash
-pip install pynacl pyyaml
+pip install pynacl
 python examples/verify.py signed.cr3st4n1 <pubkey_base64>
 ```
 
