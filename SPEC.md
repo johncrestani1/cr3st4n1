@@ -220,11 +220,22 @@ The entire YAML document is signed, not individual fields:
 
 1. Clone the file structure
 2. Set `_signature.signature` to empty string
-3. Serialize to YAML (deterministic field order via serde_yaml)
+3. Serialize to canonical YAML (see below)
 4. SHA-256 hash the YAML bytes
 5. Ed25519 sign the hash
 
 This ensures every field (including future additions) is automatically covered by the signature.
+
+### 8.1 Canonical Form (v1.0.0)
+
+The canonical serialization of a `.cr3st4n1` credential is produced by:
+
+1. Setting `_signature.signature` to an empty string
+2. Serializing the credential using `serde_yaml` 0.9 with default options
+
+Field order follows the Rust struct declaration order in `types.rs`. Reordering struct fields is a breaking change equivalent to a schema version bump.
+
+The signing payload is `SHA-256(canonical_bytes)`. The content hash (used as `actor_ref` in `.m3m3tic` files) is the hex-encoded signing payload.
 
 ---
 

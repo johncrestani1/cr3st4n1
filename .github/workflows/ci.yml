@@ -37,3 +37,12 @@ jobs:
               sys.exit(1)
           print('All examples valid.')
           "
+
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all
+      - run: cargo clippy --all -- -D warnings
+      - run: cargo fmt --all -- --check
