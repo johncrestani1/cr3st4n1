@@ -16,11 +16,53 @@ cargo install cr3st4n1
 ## Quick Start
 
 ```bash
+# Generate a signing key
 cr3st4n1 key generate --output key.json
+
+# Sign a credential
 cr3st4n1 credential sign --input identity.cr3st4n1 --key key.json
+
+# Inspect a credential (identity, trust, signature status, content hash)
+cr3st4n1 credential inspect --input identity.cr3st4n1
+
+# Inspect with inline signature verification
+cr3st4n1 credential inspect --input identity.cr3st4n1 --key key.json
+
+# Verify signature only
 cr3st4n1 credential verify --input identity.cr3st4n1 --key key.json
+
+# Content hash (actor_ref for .m3m3tic files)
 cr3st4n1 hash --input identity.cr3st4n1
 ```
+
+## Inspect
+
+`credential inspect` answers "what is this file?" in one command:
+
+```
+$ cr3st4n1 credential inspect --input case-studies/operator-alpha.cr3st4n1 --key bonfire-platform-key.json
+
+Identity: Operator Alpha (human)
+  email:     operator@example.com
+  org:       Bonfire Terminal Inc.
+
+Trust: Level 1 (email_verified)
+  providers: 1
+  device:    none
+  chain:
+    -> bonfire-platform (email_verification, 2026-07-23)
+
+Signature:
+  signer:    bonfire-platform (Ed25519)
+  signed at: 2026-07-23T18:00:00Z
+  hash:      ade88d3b3eb7ea249abbab883c3f763a6c354fbf22c11fb36adba4b0e5f9be4b
+  status:    valid
+```
+
+Use `--json` for machine-readable output (credential verbatim + `_inspect` metadata block).
+Use `--key` to verify the signature inline. Without `--key`, signature status shows `present` or `absent`.
+
+Exit codes: 0 = success, 1 = parse/schema error, 2 = signature verification failed.
 
 ## Format
 
@@ -62,7 +104,9 @@ _signature:
 
 ## Examples
 
-See `examples/minimal.cr3st4n1` (trust level 1) and `examples/full.cr3st4n1` (trust level 4, AI agent, TPM attestation).
+- `examples/minimal.cr3st4n1` — Trust level 1, email verified human
+- `examples/full.cr3st4n1` — Trust level 4, AI agent with TPM attestation
+- `case-studies/operator-alpha.cr3st4n1` — Real signed credential (see [case study](case-studies/bonfire-terminal-issuance.md))
 
 ## Trust Levels
 
@@ -84,16 +128,22 @@ See `examples/minimal.cr3st4n1` (trust level 1) and `examples/full.cr3st4n1` (tr
 | JWTs | No schema validation, no selective disclosure path, no content-addressed DID. |
 | OAuth tokens | Require online verification. cr3st4n1 verifies offline. |
 
+## CLI Reference
+
+| Command | Description |
+|---------|-------------|
+| `key generate --output KEY` | Generate Ed25519 signing keypair |
+| `key public --key KEY` | Extract public key from keypair |
+| `credential validate --input FILE` | Validate against embedded JSON Schema |
+| `credential sign --input FILE --key KEY` | Sign credential (validates schema first) |
+| `credential verify --input FILE --key KEY` | Verify Ed25519 signature |
+| `credential inspect --input FILE [--key KEY] [--json]` | Inspect credential: identity, trust, signature, hash |
+| `hash --input FILE` | Print SHA-256 content hash (for `actor_ref`) |
+
 ## Performance
 
-| Operation | Time (median) |
-|-----------|---------------|
-| validate  | 4.5 us        |
-| content_hash | 19 us      |
-| verify    | 46 us         |
-| sign      | 48 us         |
-
-Measured on Windows 10, Rust 1.93. Run `cargo bench` for numbers on your hardware.
+All operations complete in under 100 microseconds on commodity hardware.
+Run `cargo bench` for numbers on your machine.
 
 ## Verify in Python
 
@@ -104,6 +154,15 @@ pip install pynacl
 python examples/verify.py signed.cr3st4n1 <pubkey_base64>
 ```
 
+Cross-language verification is tested in CI. The Python verifier uses
+line-level string replacement to reproduce Rust's canonical form, avoiding
+serialization differences between serde_yaml and PyYAML.
+
+## Case Study
+
+See [case-studies/bonfire-terminal-issuance.md](case-studies/bonfire-terminal-issuance.md) for a
+real credential issued by Bonfire Terminal v2.7.309, signed and verified in both Rust and Python.
+
 ## Specification
 
 See [SPEC.md](SPEC.md) for the full v1.0.0-rc.1 format specification.
@@ -113,8 +172,8 @@ See [SPEC.md](SPEC.md) for the full v1.0.0-rc.1 format specification.
 ```yaml
 # In a brand's .m3m3tic file
 relationships:
-  - actor_ref: "sha256:a3f2b8c1..."   # SHA-256 of the .cr3st4n1 file
-    actor_name: "Salvo Media LLC"
+  - actor_ref: "sha256:ade88d3b..."   # SHA-256 content hash of the .cr3st4n1 file
+    actor_name: "Operator Alpha"
     type: "agency"
     authority:
       brand_voice: true
