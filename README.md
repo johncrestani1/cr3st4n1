@@ -55,7 +55,7 @@ Trust: Level 1 (email_verified)
 Signature:
   signer:    bonfire-platform (Ed25519)
   signed at: 2026-07-23T18:00:00Z
-  hash:      ade88d3b3eb7ea249abbab883c3f763a6c354fbf22c11fb36adba4b0e5f9be4b
+  hash:      ade88d3bdc325bc55e1931b7770b75b476eb820869be836abe62d6d950393c87
   status:    valid
 ```
 

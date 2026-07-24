@@ -6,7 +6,7 @@ Bonfire Terminal is a desktop AI orchestration tool (v2.7.309). When users
 complete onboarding, the platform issues a `.cr3st4n1` credential binding
 their identity to the Bonfire ecosystem.
 
-This case study documents the first real credential issued by Bonfire Terminal,
+This case study documents a real credential issued by Bonfire Terminal,
 verified in both Rust and Python.
 
 ## Credential Issued
@@ -42,7 +42,7 @@ _signature:
   signer: bonfire-platform
   algorithm: Ed25519
   signed_at: 2026-07-23T18:00:00Z
-  signature: OT1BMlc4/cTNTnfuB5BnSPzQqfueQ2LnfP93/onex8HzyZPfStFtjXIwe6pi3WIvGoWTyejs5FGwrC53pP36Cg==
+  signature: v9jAkMSet5gsbZIKUMgEmSVJhzNCIaGdQDeTaNcS7lIZDLI4sAd+Ss5ImOTBAj1Ke1leVK5EsY0V9QUiI1S6CQ==
 ```
 
 ## Schema Validation
@@ -79,10 +79,32 @@ relationships:
       spend: true
 ```
 
+## Inspect
+
+```
+$ cr3st4n1 credential inspect --input case-studies/operator-alpha.cr3st4n1 --key bonfire-platform-key.json
+
+Identity: Operator Alpha (human)
+  email:     operator@example.com
+  org:       Bonfire Terminal Inc.
+
+Trust: Level 1 (email_verified)
+  providers: 1
+  device:    none
+  chain:
+    -> bonfire-platform (email_verification, 2026-07-23)
+
+Signature:
+  signer:    bonfire-platform (Ed25519)
+  signed at: 2026-07-23T18:00:00Z
+  hash:      ade88d3bdc325bc55e1931b7770b75b476eb820869be836abe62d6d950393c87
+  status:    valid
+```
+
 ## Cross-Language Verification (Python)
 
 ```
-$ python examples/verify.py case-studies/operator-alpha.cr3st4n1 "4kmbA1Ut38TeUWrxTC8vnbG+2zrqgsybx3u1LD1d4n4="
+$ python examples/verify.py case-studies/operator-alpha.cr3st4n1 "<pubkey_base64>"
 Valid.
 ```
 
@@ -114,18 +136,3 @@ trust levels:
 
 Each re-issuance produces a new content hash. Any `.m3m3tic` files referencing
 the previous `actor_ref` must be updated to reflect the new credential.
-
-## Key Management
-
-The signing key (`bonfire-platform-key.json`) contains the Ed25519 keypair.
-The public key can be extracted for distribution:
-
-```
-$ cr3st4n1 key public --key case-studies/bonfire-platform-key.json
-{
-  "public": "4kmbA1Ut38TeUWrxTC8vnbG+2zrqgsybx3u1LD1d4n4="
-}
-```
-
-Verifiers need only the public key. The private key stays on the issuing
-machine and must never be shared.
