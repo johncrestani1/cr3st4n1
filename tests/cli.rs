@@ -189,6 +189,137 @@ fn test_cli_hash() {
 }
 
 #[test]
+fn test_cli_inspect_minimal() {
+    let output = cr3st4n1_cmd()
+        .args(["credential", "inspect", "--input"])
+        .arg(fixture_path("minimal.cr3st4n1"))
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Identity: Test User (human)"));
+    assert!(stdout.contains("Trust: Level 1 (email_verified)"));
+    assert!(stdout.contains("status:    present (use --key to verify)"));
+    assert!(stdout.contains("chain:"));
+    assert!(stdout.contains("-> bonfire-platform"));
+}
+
+#[test]
+fn test_cli_inspect_full_ai_agent() {
+    let output = cr3st4n1_cmd()
+        .args(["credential", "inspect", "--input"])
+        .arg(fixture_path("full.cr3st4n1"))
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Identity: Bonfire Content Bot (ai_agent)"));
+    assert!(stdout.contains("operator:"));
+    assert!(stdout.contains("model:     claude-opus-4-6"));
+    assert!(stdout.contains("Trust: Level 4 (gov_id)"));
+    assert!(stdout.contains("providers: 3"));
+    assert!(stdout.contains("device:    attested"));
+    assert!(stdout.contains("hw:"));
+    // 3 chain entries
+    assert!(stdout.contains("-> bonfire-platform"));
+    assert!(stdout.contains("-> hellosign"));
+    assert!(stdout.contains("-> clear-id"));
+}
+
+#[test]
+fn test_cli_inspect_with_key_valid() {
+    let dir = tempfile::tempdir().unwrap();
+    let key_path = dir.path().join("key.json");
+    let signed_path = dir.path().join("signed.cr3st4n1");
+
+    // Generate key and sign
+    cr3st4n1_cmd()
+        .args(["key", "generate", "--output"])
+        .arg(&key_path)
+        .output()
+        .unwrap();
+    std::fs::copy(fixture_path("minimal.cr3st4n1"), &signed_path).unwrap();
+    cr3st4n1_cmd()
+        .args(["credential", "sign", "--input"])
+        .arg(&signed_path)
+        .arg("--key")
+        .arg(&key_path)
+        .output()
+        .unwrap();
+
+    // Inspect with --key should show "valid"
+    let output = cr3st4n1_cmd()
+        .args(["credential", "inspect", "--input"])
+        .arg(&signed_path)
+        .arg("--key")
+        .arg(&key_path)
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("status:    valid"));
+}
+
+#[test]
+fn test_cli_inspect_with_key_invalid() {
+    let dir = tempfile::tempdir().unwrap();
+    let key_path = dir.path().join("key.json");
+    let other_key_path = dir.path().join("other-key.json");
+    let signed_path = dir.path().join("signed.cr3st4n1");
+
+    // Generate two different keys
+    cr3st4n1_cmd()
+        .args(["key", "generate", "--output"])
+        .arg(&key_path)
+        .output()
+        .unwrap();
+    cr3st4n1_cmd()
+        .args(["key", "generate", "--output"])
+        .arg(&other_key_path)
+        .output()
+        .unwrap();
+
+    // Sign with first key
+    std::fs::copy(fixture_path("minimal.cr3st4n1"), &signed_path).unwrap();
+    cr3st4n1_cmd()
+        .args(["credential", "sign", "--input"])
+        .arg(&signed_path)
+        .arg("--key")
+        .arg(&key_path)
+        .output()
+        .unwrap();
+
+    // Inspect with wrong key should exit 2 and show INVALID
+    let output = cr3st4n1_cmd()
+        .args(["credential", "inspect", "--input"])
+        .arg(&signed_path)
+        .arg("--key")
+        .arg(&other_key_path)
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("INVALID"));
+}
+
+#[test]
+fn test_cli_inspect_json() {
+    let output = cr3st4n1_cmd()
+        .args(["credential", "inspect", "--input"])
+        .arg(fixture_path("minimal.cr3st4n1"))
+        .arg("--json")
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let json: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("inspect --json must produce valid JSON");
+    assert!(json["_inspect"]["content_hash"].is_string());
+    assert_eq!(json["_inspect"]["signature_status"], "present");
+    assert_eq!(json["_inspect"]["schema_valid"], true);
+    assert_eq!(json["identity"]["display_name"], "Test User");
+}
+
+#[test]
 fn test_cli_missing_input() {
     let output = cr3st4n1_cmd()
         .args([

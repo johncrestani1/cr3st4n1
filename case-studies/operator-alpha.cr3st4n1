@@ -1,0 +1,31 @@
+cr3st4n1:
+  version: 1.0.0
+  created_at: 2026-07-23T18:00:00Z
+  generator:
+    tool: bonfire-terminal
+    version: 2.7.309
+identity:
+  type: human
+  display_name: Operator Alpha
+  email: operator@example.com
+  organization: Bonfire Terminal Inc.
+  verification:
+    level: email_verified
+    providers:
+    - type: platform_registration
+      provider: bonfire
+      registered_at: 2026-07-23T18:00:00Z
+device:
+  binding_level: none
+  registered_at: 2026-07-23T18:00:00Z
+trust:
+  level: 1
+  credential_chain:
+  - issuer: bonfire-platform
+    issued_at: 2026-07-23T18:00:00Z
+    method: email_verification
+_signature:
+  signer: bonfire-platform
+  algorithm: Ed25519
+  signed_at: 2026-07-23T18:00:00Z
+  signature: OT1BMlc4/cTNTnfuB5BnSPzQqfueQ2LnfP93/onex8HzyZPfStFtjXIwe6pi3WIvGoWTyejs5FGwrC53pP36Cg==
